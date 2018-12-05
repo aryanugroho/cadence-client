@@ -50,6 +50,7 @@ const (
 	scopeNameDescribeDomain                   = CadenceMetricsPrefix + "DescribeDomain"
 	scopeNameListDomains                      = CadenceMetricsPrefix + "ListDomains"
 	scopeNameGetWorkflowExecutionHistory      = CadenceMetricsPrefix + "GetWorkflowExecutionHistory"
+	scopeNameGetWorkflowExecutionRawHistory   = CadenceMetricsPrefix + "GetWorkflowExecutionRawHistory"
 	scopeNameListClosedWorkflowExecutions     = CadenceMetricsPrefix + "ListClosedWorkflowExecutions"
 	scopeNameListOpenWorkflowExecutions       = CadenceMetricsPrefix + "ListOpenWorkflowExecutions"
 	scopeNamePollForActivityTask              = CadenceMetricsPrefix + "PollForActivityTask"
@@ -150,6 +151,13 @@ func (w *workflowServiceMetricsWrapper) DescribeWorkflowExecution(ctx context.Co
 func (w *workflowServiceMetricsWrapper) GetWorkflowExecutionHistory(ctx context.Context, request *shared.GetWorkflowExecutionHistoryRequest, opts ...yarpc.CallOption) (*shared.GetWorkflowExecutionHistoryResponse, error) {
 	scope := w.getOperationScope(scopeNameGetWorkflowExecutionHistory)
 	result, err := w.service.GetWorkflowExecutionHistory(ctx, request, opts...)
+	scope.handleError(err)
+	return result, err
+}
+
+func (w *workflowServiceMetricsWrapper) GetWorkflowExecutionRawHistory(ctx context.Context, request *shared.GetWorkflowExecutionRawHistoryRequest, opts ...yarpc.CallOption) (*shared.GetWorkflowExecutionRawHistoryResponse, error) {
+	scope := w.getOperationScope(scopeNameGetWorkflowExecutionRawHistory)
+	result, err := w.service.GetWorkflowExecutionRawHistory(ctx, request, opts...)
 	scope.handleError(err)
 	return result, err
 }

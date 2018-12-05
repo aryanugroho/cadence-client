@@ -71,6 +71,10 @@ exception AccessDeniedError {
 
 exception RetryTaskError {
   1: required string message
+  2: optional string domainId
+  3: optional string workflowId
+  4: optional string runId
+  5: optional i64 (js.type = "Long") nextEventId
 }
 
 enum WorkflowIdReusePolicy {
@@ -252,6 +256,20 @@ struct ActivityType {
 struct TaskList {
   10: optional string name
   20: optional TaskListKind kind
+}
+
+enum EncodingType {
+  ThriftRW,
+}
+
+struct DataBlob {
+  10: optional EncodingType EncodingType
+	20: optional binary Data
+}
+
+struct ReplicationInfo {
+  10: optional i64 (js.type = "Long") version
+  20: optional i64 (js.type = "Long") lastEventId
 }
 
 struct TaskListMetadata {
@@ -1036,6 +1054,24 @@ struct GetWorkflowExecutionHistoryResponse {
   20: optional binary nextPageToken
 }
 
+struct GetWorkflowExecutionRawHistoryRequest {
+  10: optional string domain
+  20: optional WorkflowExecution execution
+  30: optional binary branchToken
+  40: optional i64 (js.type = "Long") firstEventId
+  50: optional i64 (js.type = "Long") nextEventId
+  60: optional i32 maximumPageSize
+  70: optional binary nextPageToken
+}
+
+struct GetWorkflowExecutionRawHistoryResponse {
+  10: optional binary branchToken
+  20: optional binary nextPageToken
+  30: optional list<DataBlob> historyBatches
+  40: optional map<string, ReplicationInfo> replicationInfo
+  50: optional i32 eventStoreVersion
+}
+
 struct SignalWorkflowExecutionRequest {
   10: optional string domain
   20: optional WorkflowExecution workflowExecution
@@ -1143,6 +1179,8 @@ struct PendingActivityInfo {
   30: optional PendingActivityState state
   40: optional binary heartbeatDetails
   50: optional i64 (js.type = "Long") lastHeartbeatTimestamp
+  60: optional i64 (js.type = "Long") lastStartedTimestamp
+  70: optional i32 attempt
 }
 
 struct DescribeWorkflowExecutionResponse {
@@ -1220,4 +1258,21 @@ struct RetryPolicy {
 
   // Expiration time for the whole retry process.
   60: optional i32 expirationIntervalInSeconds
+}
+
+// HistoryBranchRange represents a piece of range for a branch.
+struct HistoryBranchRange{
+  // branchID of original branch forked from
+  10: optional string branchID
+  // beinning node for the range, inclusive
+  20: optional i64 beginNodeID
+  // ending node for the range, exclusive
+  30: optional i64 endNodeID
+}
+
+// For history persistence to serialize/deserialize branch details
+struct HistoryBranch{
+  10: optional string treeID
+  20: optional string branchID
+  30: optional list<HistoryBranchRange>  ancestors
 }
